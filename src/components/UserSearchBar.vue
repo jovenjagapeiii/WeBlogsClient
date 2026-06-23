@@ -1,4 +1,3 @@
-<!-- src/components/UserSearchBar.vue -->
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -47,6 +46,21 @@ const handleClickOutside = (event) => {
   }
 };
 
+// 🌸 Smart Avatar URL Resolver for Searched Users
+const getAvatarUrl = (profilePicture) => {
+  if (!profilePicture) return null;
+  
+  // If it's already an absolute Cloudinary URL, use it directly
+  if (profilePicture.startsWith('http://') || profilePicture.startsWith('https://')) {
+    return profilePicture;
+  }
+  
+  // Dynamic fallback path for local development relative uploads
+  const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const sanitizedPath = profilePicture.startsWith('/') ? profilePicture : `/${profilePicture}`;
+  return `${baseUrl}${sanitizedPath}`;
+};
+
 const goToProfile = (userId) => {
   isOpen.value = false;
   searchQuery.value = '';
@@ -59,7 +73,6 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 
 <template>
   <div class="search-wrapper" ref="searchContainer">
-    <!-- Search Bar Input Window -->
     <div class="search-bar" :class="{ 'focused': isOpen && searchQuery }">
       <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       <input 
@@ -71,7 +84,6 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
       <div v-if="isLoading" class="spinner-mini"></div>
     </div>
 
-    <!-- Dropdown Interactive Menu -->
     <Transition name="fade-slide">
       <div v-if="isOpen && searchQuery" class="search-dropdown">
         <div v-if="searchResults.length === 0 && !isLoading" class="empty-state">
@@ -85,8 +97,8 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
           @click="goToProfile(user._id)"
         >
           <img 
-            v-if="user.profilePicture" 
-            :src="`http://localhost:5000${user.profilePicture}`" 
+            v-if="getAvatarUrl(user.profilePicture)" 
+            :src="getAvatarUrl(user.profilePicture)" 
             alt="Avatar" 
             class="user-avatar"
           />
