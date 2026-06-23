@@ -1,0 +1,31 @@
+/* src/assets/main.css */
+:root {
+  /* Color Palette */
+  --bg-app: #FFE3E8;          /* Soft strawberry milk—much easier on the eyes as a full background */
+  --bg-surface: #ffffff;      /* Pure white for cards and dialogue bubbles */
+  --text-primary: #4a2830;    /* Deep strawberry chocolate (Perfect, keeping this!) */
+  --text-muted: #a37581;      /* Dusty rose for subtext */
+  
+  --brand-pink: #ff85a1;      /* My Melody signature sweet pink */
+  --brand-pink-hover: #ff4d6d;/* Ripe strawberry hover accent */
+  --melody-yellow: #ffd97D;   /* Slightly warmed up yellow to complement the strawberry tones */
+  --border-pink: #fcd5dc;     /* Crisp, clean soft pink outline */
+  
+  /* Bubbly Sanrio UI Layout Math */
+  --radius-sm: 8px;
+  --radius-md: 16px;          
+  --radius-lg: 24px;          
+  --radius-full: 9999px;      
+  
+  /* Cute Cloud Shadow - Updated opacity to match the warmer pink */
+  --shadow-cute: 0 8px 24px -4px rgba(255, 133, 161, 0.18);
+  --font-sans: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
