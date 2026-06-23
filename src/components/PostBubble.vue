@@ -113,10 +113,11 @@ function formatDate(dateString) {
 
 const getInitials = (name) => name ? name.slice(0, 2).toUpperCase() : '🎀';
 
-const getAvatarUrl = () => {
-  const targetPic = props.post.author?.profilePicture;
+// 🌸 Generic Avatar Resolver that takes any author object (Post, Comment, or Reply)
+const getUserAvatarUrl = (author) => {
+  const targetPic = author?.profilePicture;
   if (!targetPic) {
-    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${props.post.author?.username || 'melody'}`;
+    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${author?.username || 'melody'}`;
   }
   if (targetPic.startsWith('http://') || targetPic.startsWith('https://')) {
     return targetPic;
@@ -133,7 +134,7 @@ const getAvatarUrl = () => {
         <AvatarRoot class="card-avatar-root">
           <AvatarImage 
             class="card-avatar-img"
-            :src="getAvatarUrl()" 
+            :src="getUserAvatarUrl(props.post.author)" 
             alt="Author picture" 
           />
           <AvatarFallback class="card-avatar-fallback">
@@ -245,7 +246,20 @@ const getAvatarUrl = () => {
           
           <div class="comment-bubble">
             <div class="comment-meta">
-              <span class="user-tag">🌸 {{ comment.author?.username }}</span>
+              <div class="commenter-identity-group">
+                <AvatarRoot class="comment-avatar-root">
+                  <AvatarImage 
+                    class="card-avatar-img"
+                    :src="getUserAvatarUrl(comment.author)" 
+                    alt="Commenter picture" 
+                  />
+                  <AvatarFallback class="comment-avatar-fallback">
+                    {{ getInitials(comment.author?.username) }}
+                  </AvatarFallback>
+                </AvatarRoot>
+                <span class="user-tag">{{ comment.author?.username }}</span>
+              </div>
+
               <div class="management-utilities" v-if="authStore.isAuthenticated">
                 <button @click="activeReplyId = comment._id" class="text-link">Reply</button>
                 <template v-if="comment.author?._id === authStore.currentUser?._id || authStore.isAdmin">
@@ -277,7 +291,20 @@ const getAvatarUrl = () => {
           <div class="replies-branch-container" v-for="reply in getRepliesFor(comment._id)" :key="reply._id">
             <div class="reply-bubble">
               <div class="comment-meta">
-                <span class="user-tag">✨ {{ reply.author?.username }}</span>
+                <div class="commenter-identity-group">
+                  <AvatarRoot class="reply-avatar-root">
+                    <AvatarImage 
+                      class="card-avatar-img"
+                      :src="getUserAvatarUrl(reply.author)" 
+                      alt="Replier picture" 
+                    />
+                    <AvatarFallback class="reply-avatar-fallback">
+                      {{ getInitials(reply.author?.username) }}
+                    </AvatarFallback>
+                  </AvatarRoot>
+                  <span class="user-tag">{{ reply.author?.username }}</span>
+                </div>
+
                 <div class="management-utilities" v-if="authStore.isAuthenticated && (reply.author?._id === authStore.currentUser?._id || authStore.isAdmin)">
                   <button @click="startCommentEdit(reply)" class="text-link icon">Edit</button>
                   <button @click="commentStore.deleteComment(reply._id, props.post._id)" class="text-link icon delete">Delete</button>
@@ -349,10 +376,68 @@ const getAvatarUrl = () => {
   border-radius: var(--radius-full);
   background-color: var(--bg-app);
   border: 2px solid var(--border-pink);
+  flex-shrink: 0;
 }
 
 .card-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .card-avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--bg-app); color: var(--brand-pink-hover); font-size: 0.9rem; font-weight: 800; }
+
+/* 🌸 Comment and Reply Avatar Layout Additions */
+.commenter-identity-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-avatar-root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-pink);
+  flex-shrink: 0;
+}
+
+.comment-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+  color: var(--brand-pink-hover);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.reply-avatar-root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-surface);
+  border: 1.5px solid rgba(255, 133, 161, 0.3);
+  flex-shrink: 0;
+}
+
+.reply-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+  color: var(--brand-pink-hover);
+  font-size: 0.55rem;
+  font-weight: 800;
+}
 
 .author-meta-text h4 { margin: 0; color: var(--text-primary); font-size: 1rem; font-weight: 900; line-height: 1.2; }
 .post-time { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
@@ -384,7 +469,6 @@ const getAvatarUrl = () => {
 .post-title-display { margin: 0; color: var(--text-primary); font-size: 1.2rem; font-weight: 900; }
 .post-text-body { margin: 0; color: var(--text-primary); font-size: 0.98rem; font-weight: 600; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 
-/* 🌸 Post Footer Panel styling */
 .post-footer-panel {
   display: flex;
   border-top: 2px dashed var(--border-pink);
@@ -412,7 +496,6 @@ const getAvatarUrl = () => {
   background-color: var(--bg-app);
 }
 
-/* 🌸 Comment Section Dropdown Box Tray styling */
 .comment-tray-section {
   display: flex;
   flex-direction: column;
@@ -481,8 +564,9 @@ const getAvatarUrl = () => {
 .comment-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center; /* 🌸 Kept line height balanced for avatar inclusion */
   font-size: 0.75rem;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .user-tag {
@@ -513,6 +597,7 @@ const getAvatarUrl = () => {
   color: var(--text-primary);
   margin: 0;
   font-weight: 600;
+  padding-left: 2px;
 }
 
 .comment-edit-box {
@@ -539,7 +624,6 @@ const getAvatarUrl = () => {
 .save-small-btn { background: var(--brand-pink); color: white; }
 .cancel-small-btn { background: #e5e7eb; color: #4b5563; }
 
-/* 🌸 Threaded Reply Substructure branches */
 .replies-branch-container {
   margin-left: 24px;
   margin-top: 6px;
