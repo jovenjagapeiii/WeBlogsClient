@@ -70,8 +70,10 @@ const getAvatarUrl = () => {
   
   const targetPic = authStore.currentUser?.profilePicture;
   
+  // ✨ FIX: If there is no custom picture, return an empty string.
+  // This triggers Radix Vue's fallback mode so your initials show up!
   if (!targetPic) {
-    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${authStore.currentUser?.username || 'melody'}`;
+    return '';
   }
   
   if (targetPic.startsWith('http://') || targetPic.startsWith('https://')) {
