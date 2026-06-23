@@ -125,6 +125,18 @@ const getUserAvatarUrl = (author) => {
   const sanitizedPath = targetPic.startsWith('/') ? targetPic : `/${targetPic}`;
   return `${import.meta.env.VITE_BACKEND_URL}${sanitizedPath}`;
 };
+
+// 🌟 Safe Ownership Verification Helper (Bridges .id and ._id variations securely)
+const isOwner = (authorObject) => {
+  if (!authStore.isAuthenticated || !authStore.currentUser) return false;
+  
+  const currentUserId = authStore.currentUser._id || authStore.currentUser.id;
+  const authorId = authorObject?._id || authorObject?.id;
+  
+  if (!currentUserId || !authorId) return false;
+  
+  return String(currentUserId) === String(authorId);
+};
 </script>
 
 <template>
@@ -150,8 +162,9 @@ const getUserAvatarUrl = (author) => {
         </div>
       </div>
       
+      <!-- 🌟 Updates post deletion/editing access rules using isOwner helper -->
       <div 
-        v-if="authStore.isAuthenticated && (authStore.currentUser?._id === props.post.author?._id || authStore.isAdmin)" 
+        v-if="isOwner(props.post.author) || authStore.isAdmin" 
         class="post-actions-cluster"
       >
         <button 
@@ -262,7 +275,8 @@ const getUserAvatarUrl = (author) => {
 
               <div class="management-utilities" v-if="authStore.isAuthenticated">
                 <button @click="activeReplyId = comment._id" class="text-link">Reply</button>
-                <template v-if="comment.author?._id === authStore.currentUser?._id || authStore.isAdmin">
+                <!-- 🌟 Updates root comment management tools with isOwner helper -->
+                <template v-if="isOwner(comment.author) || authStore.isAdmin">
                   <button @click="startCommentEdit(comment)" class="text-link icon">Edit</button>
                   <button @click="commentStore.deleteComment(comment._id, props.post._id)" class="text-link icon delete">Delete</button>
                 </template>
@@ -305,7 +319,8 @@ const getUserAvatarUrl = (author) => {
                   <span class="user-tag">{{ reply.author?.username }}</span>
                 </div>
 
-                <div class="management-utilities" v-if="authStore.isAuthenticated && (reply.author?._id === authStore.currentUser?._id || authStore.isAdmin)">
+                <!-- 🌟 Updates nested sub-reply modification buttons with isOwner helper -->
+                <div class="management-utilities" v-if="isOwner(reply.author) || authStore.isAdmin">
                   <button @click="startCommentEdit(reply)" class="text-link icon">Edit</button>
                   <button @click="commentStore.deleteComment(reply._id, props.post._id)" class="text-link icon delete">Delete</button>
                 </div>
@@ -339,7 +354,7 @@ const getUserAvatarUrl = (author) => {
   gap: 16px;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  text-align: left;
+ text-align: left;
 }
 
 .post-bubble:hover {
@@ -382,7 +397,6 @@ const getUserAvatarUrl = (author) => {
 .card-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .card-avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: var(--bg-app); color: var(--brand-pink-hover); font-size: 0.9rem; font-weight: 800; }
 
-/* 🌸 Comment and Reply Avatar Layout Additions */
 .commenter-identity-group {
   display: flex;
   align-items: center;
@@ -564,7 +578,7 @@ const getUserAvatarUrl = (author) => {
 .comment-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* 🌸 Kept line height balanced for avatar inclusion */
+  align-items: center;
   font-size: 0.75rem;
   margin-bottom: 6px;
 }

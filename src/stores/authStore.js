@@ -18,13 +18,18 @@ export const useAuthStore = defineStore('auth', () => {
   // --- ACTIONS (Methods) ---
   
   // 1. Core Registration Sequence
+  // 1. Core Registration Sequence
   async function registerUser(username, email, password, role = 'user') {
     loading.value = true;
     authError.value = null;
     try {
       const response = await api.post('/auth/register', { username, email, password, role });
+      
+      // 🌟 FIX: Extract user safely using fallbacks
+      const userData = response.data.user || response.data.data || response.data;
+      
       if (response.data.token) {
-        setSession(response.data.token, response.data.user);
+        setSession(response.data.token, userData);
       }
       return { success: true };
     } catch (err) {
@@ -41,7 +46,11 @@ export const useAuthStore = defineStore('auth', () => {
     authError.value = null;
     try {
       const response = await api.post('/auth/login', { email, password });
-      setSession(response.data.token, response.data.user);
+      
+      // 🌟 FIX: Extract user safely using fallbacks
+      const userData = response.data.user || response.data.data || response.data;
+      
+      setSession(response.data.token, userData);
       return { success: true };
     } catch (err) {
       authError.value = err.response?.data?.message || 'Invalid credentials!';
